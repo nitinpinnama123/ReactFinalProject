@@ -1,3 +1,5 @@
+// LoginScreen.js
+
 import React, { useState } from "react";
 import {
   View,
@@ -6,6 +8,7 @@ import {
   Button,
   StyleSheet,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -15,22 +18,29 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
 
-  // ✅ Step 2: Form Validation
+  // ✅ Validate form inputs
   const validateForm = () => {
     if (!email || !password) {
-      Alert.alert("Both email and password are required.");
+      Alert.alert("Both fields are required.");
       return false;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Invalid email format.");
+      return false;
+    }
+
     return true;
   };
 
-  // 🔐 Step 3: Authenticate User
+  // ✅ Check credentials from AsyncStorage
   const handleLogin = async () => {
     try {
       const storedUser = await AsyncStorage.getItem("user");
 
       if (!storedUser) {
-        Alert.alert("No user found. Please sign up first.");
+        Alert.alert("No account found. Please sign up first.");
         return;
       }
 
@@ -38,16 +48,18 @@ const LoginScreen = () => {
 
       if (email === parsedUser.email && password === parsedUser.password) {
         Alert.alert("Login successful!");
-        // Navigate to the home or dashboard screen here
+        // TODO: Navigate to your main/home/dashboard screen
+        // Example: navigation.navigate("Home");
       } else {
-        Alert.alert("Invalid email or password.");
+        Alert.alert("Incorrect email or password.");
       }
     } catch (error) {
-      Alert.alert("An error occurred while logging in.");
+      Alert.alert("Login failed. Please try again.");
+      console.error("Login error:", error);
     }
   };
 
-  // 🟢 Step 4: Handle Login Button Press
+  // ✅ Combine validation and login
   const handleLoginPress = () => {
     if (validateForm()) {
       handleLogin();
@@ -56,6 +68,8 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Enter your email"
@@ -71,25 +85,50 @@ const LoginScreen = () => {
         onChangeText={setPassword}
         secureTextEntry
       />
+
       <Button title="Login" onPress={handleLoginPress} />
+
+      <View style={styles.signUpPrompt}>
+        <Text>Don't have an account?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+          <Text style={styles.signUpText}> Sign Up</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 export default LoginScreen;
 
+
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 20,
-      justifyContent: "center",
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: "#ccc",
-      padding: 10,
-      borderRadius: 5,
-      marginBottom: 15,
-    },
-  });
-  
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 6,
+    marginBottom: 15,
+  },
+  signUpPrompt: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  signUpText: {
+    color: "blue",
+    marginLeft: 5,
+  },
+});
+
